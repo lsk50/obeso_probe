@@ -1,0 +1,22 @@
+# 数据文件（太大）
+data/
+checkpoints/
+logs/
+outputs/
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+
+# 虚拟环境
+venv/
+.venv/
+*.egg-info/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# HuggingFace 缓存
+.cache/
