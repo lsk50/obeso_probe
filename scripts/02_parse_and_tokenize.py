@@ -40,19 +40,32 @@ MODEL_NAME = "Qwen/Qwen2.5-7B-Instruct"
 
 
 def char_idx_to_token_idx(char_idx: int, offsets: list) -> int:
+    if char_idx is None:
+        return len(offsets) - 1
     """
     将字符级索引转换为 token 级索引。
-    跳过特殊 token 的 None offset。
+    
+    Args:
+        char_idx: 字符在文本中的位置
+        offsets: tokenizer 的 offset_mapping [(char_start, char_end), ...]
+                 注意：特殊 token（BOS/EOS 等）的 offset 可能是 (None, None) 或 (0, 0)
+    
+    Returns:
+        对应的 token 索引
     """
     best_match = None
     for token_idx, (cs, ce) in enumerate(offsets):
+        # 跳过无效 offset（特殊 token 可能是 None 或 (0,0)）
         if cs is None or ce is None:
             continue
         if cs == 0 and ce == 0:
             continue
         if cs <= char_idx < ce:
             return token_idx
+        # 记录最后一个有效 offset 作为兜底
         best_match = token_idx
+    
+    # 兜底：如果没精确匹配，返回最后一个有效 token
     return best_match if best_match is not None else len(offsets) - 1
 
 
@@ -93,6 +106,8 @@ def parse_sample(item: dict, tokenizer) -> dict:
     token_annotations = []
     for ann in annotations:
         char_idx = ann.get("index", 0)
+        if char_idx is None:
+            continue
         span_text = ann.get("span", "")
         label = ann.get("label", "")
         verification_note = ann.get("verification_note", "")
